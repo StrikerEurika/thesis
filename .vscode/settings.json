@@ -1,0 +1,84 @@
+{
+  // =========================================================
+  // BUILD
+  // =========================================================
+  "latex-workshop.latex.autoBuild.run": "never",
+  // The custom build script controls the actual output directory.
+  // It will write to: %WORKSPACE_FOLDER%/build/<project>/
+  "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/build/thesis",
+  // Rebuild also when .sty, .cls, .bib files are saved
+  "latex-workshop.latex.autoBuild.onSave.files.ignore": [],
+  // Important for multi-folder src structure
+  "latex-workshop.latex.rootFile.useSubFile": false,
+  // =========================================================
+  // RECIPES
+  // =========================================================
+  "latex-workshop.latex.recipe.default": "general: xelatex fast",
+  // "latex-workshop.latex.recipe.default": "general: xelatex + biber",
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "general: xelatex + biber",
+      "tools": [
+        "general-full"
+      ]
+    },
+    {
+      "name": "general: xelatex fast",
+      "tools": [
+        "general-fast"
+      ]
+    }
+  ],
+  // =========================================================
+  // TOOLS
+  // =========================================================
+  "latex-workshop.latex.tools": [
+    {
+      "name": "general-full",
+      "command": "/bin/bash",
+      "args": [
+        "%WORKSPACE_FOLDER%/scripts/build-latex.sh",
+        "%DOC%",
+        "%WORKSPACE_FOLDER%",
+        "full"
+      ],
+      "env": {}
+    },
+    {
+      "name": "general-fast",
+      "command": "/bin/bash",
+      "args": [
+        "%WORKSPACE_FOLDER%/scripts/build-latex.sh",
+        "%DOC%",
+        "%WORKSPACE_FOLDER%",
+        "fast"
+      ],
+      "env": {}
+    }
+  ],
+  // =========================================================
+  // VIEWER & SYNCTEX
+  // =========================================================
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.synctex.afterBuild.enabled": true,
+  // =========================================================
+  // FORMATTING
+  // =========================================================
+  "latex-workshop.formatting.latex": "latexindent",
+  // =========================================================
+  // CLEAN
+  // =========================================================
+  "latex-workshop.latex.autoClean.run": "never",
+  // =========================================================
+  // EDITOR QUALITY OF LIFE
+  // =========================================================
+  "latex-workshop.intellisense.package.enabled": true,
+  "latex-workshop.latex.autoBuild.interval": 1000,
+  "[latex]": {
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "on",
+    "editor.rulers": [
+      100
+    ]
+  }
+}

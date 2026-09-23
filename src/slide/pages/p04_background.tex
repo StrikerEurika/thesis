@@ -1,0 +1,289 @@
+\section{PROJECT BACKGROUND}
+
+\subsection{Background}
+
+\begin{frame}[t]{Background: KFCProcedure Algorithm Workflow}
+    \footnotesize
+    \centering
+
+    {\scriptsize
+        \textbf{Clusterwise learning framework based on KFCProcedure}
+        \cite{has2021kfc}
+    }
+
+    \vspace{0.18cm}
+
+    \resizebox{0.93\linewidth}{!}{
+        \begin{tikzpicture}[
+                font=\scriptsize,
+                box/.style={
+                        draw=blue!60,
+                        fill=lightblue,
+                        rounded corners=4pt,
+                        minimum width=1.35cm,
+                        minimum height=0.65cm,
+                        align=center
+                    },
+                widebox/.style={
+                        draw=blue!60,
+                        fill=lightblue,
+                        rounded corners=4pt,
+                        minimum width=2.45cm,
+                        minimum height=0.65cm,
+                        align=center
+                    },
+                aggbox/.style={
+                        draw=blue!60,
+                        fill=green!12,
+                        rounded corners=4pt,
+                        minimum width=3.9cm,
+                        minimum height=0.8cm,
+                        align=center
+                    },
+                note/.style={
+                        anchor=west,
+                        align=left,
+                        text width=2.75cm,
+                        font=\scriptsize
+                    },
+                arrow/.style={-Latex, thick},
+                dashline/.style={dash pattern=on 5pt off 4pt, thick}
+            ]
+
+            % =========================
+            % Step labels
+            % =========================
+            \node[anchor=east] at (-1.0,2.6) {\textbf{K-step}};
+            \node[anchor=east] at (-1.0,1.25) {\textbf{F-step}};
+            \node[anchor=east] at (-1.0,-0.25) {\textbf{C-step}};
+
+            % =========================
+            % K-step
+            % =========================
+            \node[box] (b1) at (0.8,2.6) {$\mathcal{B}_1$};
+            \node[box] (b2) at (3.6,2.6) {$\mathcal{B}_2$};
+            \node[box] (bm) at (6.6,2.6) {$\mathcal{B}_M$};
+            \draw[dashline] (b2.east) -- (bm.west);
+
+            \node[note] at (7.85,2.6) {
+                Identifies hidden local structures in heterogeneous data.
+            };
+
+            % =========================
+            % F-step
+            % =========================
+            \node[widebox] (m1) at (0.8,1.25) {$\mathcal{M}_{1,1}, \ldots, \mathcal{M}_{1,K}$};
+            \node[widebox] (m2) at (3.6,1.25) {$\mathcal{M}_{2,1}, \ldots, \mathcal{M}_{2,K}$};
+            \node[widebox] (mm) at (6.6,1.25) {$\mathcal{M}_{M,1}, \ldots, \mathcal{M}_{M,K}$};
+            \draw[dashline] (m2.east) -- (mm.west);
+
+            \node[note] at (7.85,1.25) {
+                Trains supervised models for each discovered local group.
+            };
+
+            % =========================
+            % C-step
+            % =========================
+            \node[aggbox] (agg) at (3.6,-0.25) {COBRA-Based\\Aggregation};
+
+            \node[note] at (7.85,-0.25) {
+                Combines local model predictions into the final output.
+            };
+
+            % =========================
+            % Arrows
+            % =========================
+            \draw[arrow] (b1.south) -- (m1.north);
+            \draw[arrow] (b2.south) -- (m2.north);
+            \draw[arrow] (bm.south) -- (mm.north);
+
+            \draw[arrow] (m1.south east) -- (agg.north);
+            \draw[arrow] (m2.south) -- (agg.north);
+            \draw[arrow] (mm.south west) -- (agg.north);
+
+        \end{tikzpicture}
+    }
+
+    \vspace{0.45cm}
+
+    \begin{block}{Key idea}
+        KFCProcedure provides the clusterwise workflow, while COBRA provides the reusable combiner for the C-step.
+    \end{block}
+
+\end{frame}
+
+\begin{frame}[t]{Background: GradientCOBRA Algorithm Workflow}
+    \centering
+    \scriptsize
+    \vspace{-0.20cm}
+
+    \resizebox{0.96\textwidth}{!}{%
+        \begin{tikzpicture}[
+                box/.style={
+                        rectangle,
+                        rounded corners=6pt,
+                        thick,
+                        align=center,
+                        minimum width=2.45cm,
+                        minimum height=0.78cm,
+                        font=\scriptsize
+                    },
+                data/.style={
+                        box,
+                        draw=blue!70,
+                        fill=blue!8
+                    },
+                train/.style={
+                        box,
+                        draw=orange!85!black,
+                        fill=orange!10
+                    },
+                agg/.style={
+                        box,
+                        draw=green!55!black,
+                        fill=green!10
+                    },
+                output/.style={
+                        box,
+                        draw=purple!70,
+                        fill=purple!8
+                    },
+                arrow/.style={
+                        -{Latex[length=1.8mm]},
+                        thick
+                    },
+            ]
+
+            % =========================
+            % Input
+            % =========================
+            \node[data] (data) at (0,0) {
+                Input\\Data
+            };
+
+            % =========================
+            % Training row
+            % =========================
+            \node[train] (trainset) at (3.4,1.35) {
+                Training\\Set
+            };
+
+            \node[train] (estimator) at (6.6,1.35) {
+                Estimators\\
+                $M_1,\ldots,M_K$
+            };
+
+            % =========================
+            % Aggregation row
+            % =========================
+            \node[agg] (aggset) at (3.4,-1.35) {
+                Aggregation\\Set
+            };
+
+            \node[agg] (predspace) at (6.6,-1.35) {
+                Prediction\\Space
+            };
+
+            \node[agg] (similarity) at (9.8,-1.35) {
+                Similarity\\Measure
+            };
+
+            \node[agg] (optimize) at (13.0,-1.35) {
+                Optimize\\Weight
+            };
+
+            \node[agg] (aggregate) at (16.2,-1.35) {
+                COBRA\\Aggregation
+            };
+
+            \node[output] (final) at (19.4,-1.35) {
+                Final\\Prediction
+            };
+
+            % =========================
+            % Split from input data
+            % =========================
+            \draw[arrow] (data) -- (trainset);
+            \draw[arrow] (data) -- (aggset);
+
+            % =========================
+            % Training flow
+            % =========================
+            \draw[arrow] (trainset) -- (estimator);
+
+            % =========================
+            % Estimators feed prediction space
+            % =========================
+            \draw[arrow] (estimator) -- (predspace);
+
+            % =========================
+            % Aggregation flow
+            % =========================
+            \draw[arrow] (aggset) -- (predspace);
+            \draw[arrow] (predspace) -- (similarity);
+            \draw[arrow] (similarity) -- (optimize);
+            \draw[arrow] (optimize) -- (aggregate);
+            \draw[arrow] (aggregate) -- (final);
+
+        \end{tikzpicture}
+    }
+
+    \vspace{0.30cm}
+
+    \begin{block}{Key idea}
+        GradientCOBRA uses trained estimators to create a prediction space, then measures similarity and optimizes aggregation to produce the final prediction.
+    \end{block}
+
+    \vspace{-0.05cm}
+    {\tiny Source: Adapted from \cite{has2023gradientcobra}, \textit{Gradient COBRA: A kernel-based consensual aggregation for regression}.}
+
+\end{frame}
+
+
+\subsection{Problem Statement}
+\begin{frame}[t]{Problem Statement}
+    \small
+
+    \vspace{0.2cm}
+    \textbf{Main Problem : }
+
+    \vspace{0.25cm}
+
+    \begin{enumerate}
+
+        \item How can a machine learning package support clusterwise learning?
+
+        \item How can multiple aggregation strategies be unified in one framework?
+    \end{enumerate}
+
+    \vspace{0.35cm}
+    \begin{block}{Project Focus}
+        KFCProcedure provides a modular structure for local learning,
+        prediction aggregation, and extensible model development.
+    \end{block}
+\end{frame}
+
+\subsection{Objective}
+
+\begin{frame}[t]{Objective}
+    \footnotesize
+
+    \begin{itemize}
+        \setlength\itemsep{0.24cm}
+
+        \item To study and implement the theoretical foundations of
+              \textbf{KFCProcedure} and \textbf{COBRA-based aggregation methods}.
+
+        \item To develop \textbf{KFCProcedure} as a clusterwise learning framework
+              based on the K-step, F-step, and C-step workflow.
+
+        \item To redesign \textbf{GradientCOBRA} as a reusable combiner architecture
+              that supports flexible aggregation strategies for the C-step.
+
+        \item To build a modular Python package with clear documentation, practical examples,
+              and a consistent API for researchers and practitioners.
+    \end{itemize}
+
+\end{frame}
+
+

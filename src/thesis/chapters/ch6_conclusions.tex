@@ -1,0 +1,44 @@
+\chapter{CONCLUSIONS}
+
+\section{Summary of Achievements}
+\label{sec:summary_achievements}
+
+\hs This internship project successfully developed and validated a deep learning framework for automatic crack segmentation in large-scale aerial imagery. The key achievements are:
+
+\begin{itemize}
+	\item \textbf{Dataset unification:} Aggregated and standardized 8,818 images from four public crack datasets (CFD, Crack500, DeepCrack, Tunnel Crack) into a unified binary annotation format, with a strict image-level train/validation/test split (80/10/10).
+
+	\item \textbf{Model development:} Implemented and trained three state-of-the-art segmentation architectures, U-Net with EfficientNet-B0 encoder and scSE attention, SegFormer with MiT-B0 encoder, and YOLO26s-seg, under a unified training protocol with combined BCE+Dice+Focal loss for the SMP-based models.
+
+	\item \textbf{Tile-based inference pipeline:} Designed and implemented a sliding window pipeline with 25\% overlap and Gaussian blended merging, enabling seamless processing of arbitrarily large images on a single GPU with limited VRAM.
+
+	\item \textbf{Experimental validation:} Evaluated all models on both public test data and the unseen CUBIT-InSeg large-scale UAV dataset. U-Net achieved the best accuracy on public data (IoU 53.04\%), while YOLO26s-seg achieved the best zero-shot performance on CUBIT-InSeg (IoU 40.12\%).
+
+	\item \textbf{Application deployment:} Integrated the best-performing models into a desktop application built with Python 3.11 and QFluentWidgets, providing a complete workflow from image import to mask visualization and crack statistics. The application successfully processed large-scale UAV imagery (>10 MP) on consumer-grade hardware (GTX 1650, 4 GB VRAM), demonstrating practical deployability for field inspection.
+\end{itemize}
+
+\section{Concluding Remarks}
+\label{sec:concluding_remarks}
+
+\hs The results of this project demonstrate that deep learning can effectively detect and segment cracks in high-resolution aerial imagery, but that no single architecture is optimal for all deployment scenarios. U-Net offers the best accuracy for offline inspection, SegFormer provides a balance between accuracy and global context, and YOLO26s-seg delivers the fastest inference for interactive applications. The tile-based inference pipeline successfully overcomes GPU memory constraints, making gigapixel-scale processing feasible on consumer hardware.
+
+\hs The desktop application developed during this internship shows that the framework is practically deployable, not just experimentally valid. By embedding the pipeline into a user-friendly interface, AI Farm Robotics can offer automated crack inspection as part of its RaaS portfolio, reducing the cost and subjectivity of manual inspection.
+
+\hs The zero-shot performance on CUBIT-InSeg (IoU $\sim$40\%) should be interpreted as a lower bound. With deployment-time fine-tuning on customer-specific imagery, the framework is expected to achieve performance comparable to its public-dataset results. This positions the project as a strong foundation for AI Farm Robotics' entry into the infrastructure inspection market.
+
+\section{Future Work and Recommendations}
+\label{sec:future_work}
+
+\subsection{Expanding the Self-Collected Dataset}
+\hs The planned UAV dataset from the Drone Operations Department was not completed during the internship period. Future work should prioritize collecting 500--1,000 high-resolution images of building facades and rooftops in Phnom Penh, annotated by trained technicians. This dataset would enable (1) fine-tuning of the models for Cambodian infrastructure, (2) validation of the pipeline on genuine AI Farm Robotics imagery, and (3) benchmarking against the zero-shot results reported in Chapter 4.
+
+\subsection{Real-Time and Edge Deployment}
+
+\hs The current application runs on desktop workstations and field laptops. Future work should optimize the pipeline for real-time edge deployment on UAV-mounted hardware. This includes model quantization (INT8 or FP16), pruning of redundant parameters, and integration with NVIDIA Jetson or similar embedded platforms. Additionally, the tile-based pipeline could be parallelized across multiple CPU/GPU threads to reduce latency for large images.
+
+\subsection{Application Refinement and User Testing}
+
+\hs The desktop application validates the core inference pipeline but has not undergone user testing. Future work should include usability studies with inspection engineers, integration of crack quantification metrics (length, width, density), and support for batch processing of full UAV flight datasets. The application should also support deployment-time fine-tuning, allowing users to adapt the model to new customer sites. Finally, packaging the app as a standalone executable using PyInstaller or Nuitka would simplify distribution.
+
+\subsection{Extension to Other Defect Types}
+\hs While this project focused on cracks, infrastructure inspection also requires detection of other defect types such as spalling, corrosion, delamination, and water damage. Future work could extend the framework to multi-class segmentation, using the same tile-based pipeline and application architecture.

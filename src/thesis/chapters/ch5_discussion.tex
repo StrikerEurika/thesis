@@ -1,0 +1,68 @@
+\chapter{DISCUSSION}
+\label{chap:discussion}
+
+\section{Interpretation of Experimental Results}
+\label{sec:interpretation_of_experimental_results}
+
+\hs The experimental results presented in Chapter 4 reveal distinct performance characteristics across the three architectural paradigms evaluated. On the public crack dataset, U-Net achieved the highest segmentation accuracy (IoU 53.04\%, F1 67.59\%), followed closely by SegFormer (IoU 51.21\%, F1 65.70\%), while YOLO26s-seg lagged substantially (IoU 28.10\%, F1 40.26\%). These results align with the architectural expectations outlined in Section~\ref{subsec:semantic_segmentation_unet}: U-Net's skip connections preserve fine spatial details critical for thin crack detection, while SegFormer's global self-attention provides complementary contextual reasoning.
+
+\hs The relatively strong performance of U-Net can be attributed to two design choices. First, the EfficientNet-B0 encoder provides a favorable balance between representational capacity and computational efficiency, enabling effective feature extraction without overfitting on the 7,054 training images. Second, the scSE attention modules in the decoder allow the network to suppress background texture and focus on crack-like structures, a critical capability when cracks occupy only 3.33\% of the training pixels (Table~\ref{tab:segmentation_performance}).
+
+\hs The performance gap of YOLO26s-seg on the public dataset is notable. While YOLO26 is optimized for real-time detection, its instance segmentation head may lack the spatial resolution required to delineate 1--3 pixel-wide cracks. Additionally, because YOLO was trained with its native loss function (which does not include the Dice or Focal components used for U-Net and SegFormer), it likely struggled more with the extreme foreground-background imbalance.
+
+\hs A different pattern emerged on the CUBIT-InSeg dataset. Under zero-shot conditions, YOLO26s-seg achieved the highest IoU (40.12\%) and F1 (56.16\%), narrowly outperforming U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%). This reversal suggests that YOLO26's native architectural optimizations, particularly NMS-free inference and Programmable Gradient Information, may confer advantages when processing the higher-resolution, more variable imagery in CUBIT-InSeg. U-Net retained the highest precision (68.90\%), indicating that it produces the fewest false positives, which is desirable in inspection contexts where false alarms incur operational costs.
+
+\hs Taken together, these results suggest that no single architecture dominates across all conditions. The model that performs best on controlled, close-up public data is not necessarily the model that transfers best to unseen aerial imagery, and the ranking between architectures can therefore shift depending on the deployment scenario. This observation motivates the trade-off analysis in the following sections, where accuracy, speed, and generalization are considered jointly rather than in isolation.
+
+\newpage
+
+\section{Analysis of Model Performance and Trade-offs}
+\label{sec:analysis_of_model_performance_and_trade-offs}
+
+\subsection{Accuracy vs. Inference Speed}
+\label{subsec:accuracy_vs_inference_speed}
+
+\hs The three architectures exhibit a clear accuracy-speed trade-off. On the public dataset, YOLO26s-seg was approximately 4.7$\times$ faster than U-Net (18.07 ms vs. 84.45 ms) but achieved less than half the IoU (28.10\% vs. 53.04\%). On CUBIT-InSeg, the gap narrowed: YOLO26s-seg (3,940 ms) was only 1.24$\times$ faster than U-Net (4,903 ms), because tile-based processing overhead dominates total latency for large images. This convergence is important for deployment: for gigapixel imagery, the per-tile model speed advantage of YOLO is partially masked by the fixed cost of tiling, blending, and I/O.
+
+\hs From a deployment perspective, the optimal model depends on the application. For offline batch inspection of UAV flight data, U-Net's superior accuracy justifies its higher latency. For interactive or real-time inspection, YOLO26s-seg's speed advantage becomes relevant, particularly when processing smaller image regions. SegFormer offers a middle ground, achieving near-U-Net accuracy at a modest speed advantage.
+
+\subsection{Fine Detail Capture vs. Global Context}
+\label{subsec:fine_detail_vs_global_context}
+
+\hs The results highlight a fundamental tension in crack segmentation between local detail and global context. U-Net's convolutional encoder excels at capturing fine spatial details, while its skip connections directly transfer high-resolution features from the encoder to the decoder, enabling precise localization of thin cracks. This is reflected in its high precision (68.90\% on CUBIT-InSeg) and its visually coherent masks (Figure \ref{fig:cubit_inseg_comparison}).
+
+\hs SegFormer's transformer backbone provides a global receptive field, allowing the model to maintain continuity across long, branching cracks. However, this comes at the cost of occasional false positives, as the model may classify textured background regions as cracks when their global context resembles crack patterns. The qualitative results (Figure \ref{fig:cubit_inseg_comparison}) confirm this: SegFormer preserves crack topology better than YOLO but introduces more spurious detections than U-Net.
+
+\hs YOLO26s-seg, as an instance segmentation model, treats each crack as a discrete object. While this is advantageous for counting and tracking individual crack instances, it fragments continuous cracks into disjoint segments. This fragmentation is visible in Figure \ref{fig:cubit_inseg_comparison} and likely contributes to its lower IoU on the public dataset.
+
+\hs These architectural differences imply that the choice of model should be guided by the nature of the defect being inspected, not by a single global accuracy ranking.
+
+\section{Effectiveness of the Tile-Based Inference Pipeline}
+\label{sec:effectiveness_of_the_tile_based_inference_pipeline}
+
+\hs The tile-based inference pipeline with blended overlap merging proved effective for processing large-scale imagery. The 25\% overlap (128 pixels on a $512\times512$ tile) ensured that cracks crossing tile boundaries were fully captured within at least one neighboring tile, and the Gaussian blending smoothed transitions between adjacent predictions. Visual inspection of the merged outputs (Figure \ref{fig:cubit_inseg_comparison}) confirms that crack continuity is preserved across boundaries, with no visible seams.
+
+\hs However, two limitations were observed. First, in regions where crack intensity varies sharply across tile boundaries, such as areas with strong shadows or surface staining, some discontinuities remain, particularly in YOLO26s-seg outputs. Second, the computational overhead of blending is non-trivial: for a 13.5 MP image, the tiling and merging steps add approximately 45 ms per tile, which becomes significant when processing hundreds of tiles.
+
+\hs The pipeline is architecturally scalable to gigapixel images, as tile processing is independent of total image dimensions. The only requirements are sufficient disk storage for intermediate outputs and sequential tile processing to fit within GPU memory. On the GTX 1650 (4 GB VRAM) used for evaluation, the pipeline successfully processed 13.5 MP images, and the same approach would extend to 100+ MP images without modification.
+
+\section{Practical Implications for Infrastructure Inspection}
+\label{sec:practical_implications_for_infrastructure_inspection}
+
+\hs The desktop application described in Section \ref{subsec:application_development_and_integration} demonstrates that the proposed framework is not merely an academic exercise but a deployable tool for infrastructure inspection. By embedding the tile-based pipeline into a QFluentWidgets interface, AI Farm Robotics can offer customers a workflow that requires no machine learning expertise: load UAV imagery, run inference, and receive crack masks and statistics.
+
+\hs The application's ONNX-based inference layer eliminates the need for a PyTorch installation on deployment machines, reducing setup complexity. Support for both GPU (CUDA) and CPU fallback ensures operability on field laptops without dedicated graphics hardware—a common constraint in UAV inspection scenarios.
+
+\hs The application was validated on the local evaluation hardware described in Section \ref{sec:experimental_environment_and_hardware_specifications}. Using the U-Net model, the full pipeline, including image loading, tiled inference, blended merging, and mask visualization, successfully processed 13.5 MP images end-to-end in under 5 seconds. This confirms that the framework is not only accurate but also practical for real-world inspection workflows on consumer-grade hardware.
+
+\newpage
+
+\hs From a business perspective, the framework supports AI Farm Robotics' Robot-as-a-Service (RaaS) model. Rather than selling software licenses, the company can offer crack inspection as a subscription service, with the desktop app serving as the operator interface and the underlying models fine-tuned per customer site. The zero-shot results on CUBIT-InSeg (IoU ~40\%) represent a conservative lower bound; after deployment-time fine-tuning on a small set of customer images, performance is expected to improve substantially.
+
+\section{Challenges Encountered and Future Work}
+\label{sec:challenges_and_future_work}
+
+\hs Several challenges were encountered during this internship. First, the planned self-collected UAV dataset was not completed by the Drone Operations Department, preventing validation on AI Farm Robotics' own imagery. Second, the GTX 1650's 4 GB VRAM imposed strict batch-size limits and required the tile-based pipeline, though this constraint also made the evaluation more representative of edge deployment. Third, the zero-shot domain gap between public datasets and CUBIT-InSeg highlights the need for deployment-time fine-tuning.
+
+\hs Future work should address these challenges through three directions: (1) completing the self-collected UAV dataset and validating the pipeline on customer-specific imagery; (2) optimizing the application for real-time and edge deployment, including quantization and pruning; and (3) developing an in-app fine-tuning workflow that allows operators to adapt the model to new sites without retraining from scratch. These directions are elaborated in Section 6.3.
+

@@ -1,0 +1,28 @@
+{
+  "name": "Thesis Report",
+  "containerUser": "root",
+  "remoteUser": "root",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+    "--name",
+    "latex-devcontainer-thesis-report"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "James-Yu.latex-workshop",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ],
+      "settings": {
+        "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/build",
+        "latex-workshop.latex.autoBuild.run": "never",
+        "latex-workshop.latex.recipe.default": "general: xelatex fast",
+        "editor.wordWrap": "on",
+        "files.autoSave": "afterDelay"
+      }
+    }
+  }
+}

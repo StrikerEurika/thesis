@@ -1,0 +1,13 @@
+\clearpage
+\phantomsection
+\chapter*{ABSTRACT}
+\addcontentsline{toc}{chapter}{ABSTRACT}
+
+\hs Routine inspection of critical infrastructure such as bridges, buildings, and runways is essential for public safety, yet manual inspection remains expensive, subjective, and limited in coverage. While deep learning has shown promise for crack detection on close-up imagery, applying these methods to high-resolution aerial imagery captured by Unmanned Aerial Vehicles (UAVs) introduces severe challenges: structural cracks as thin as 1–3 pixels occupy less than 0.01\% of images exceeding 100 megapixels, exceeding standard GPU memory limits and causing existing models to lose fine spatial detail or global context.
+
+This internship project, conducted at \textbf{AI Farm Robotics Co., Ltd.}, lasted three months and developed and validated a deep learning framework for automatic, pixel-level crack segmentation in large-scale aerial imagery. Three architectural paradigms were empirically evaluated under a unified protocol: \textbf{U-Net} with an \textbf{EfficientNet-B0 encoder} and \textbf{scSE attention} (semantic segmentation), \textbf{SegFormer} with a \textbf{MiT-B0 encoder} (transformer-based segmentation), and \textbf{YOLO26s-seg} (instance segmentation). U-Net and SegFormer employed a combined \textbf{BCE + Dice + Focal loss} to address extreme class imbalance, while \textbf{YOLO26s-seg} served as a native, deployment-oriented baseline. A tile-based inference pipeline with 25\% overlapping windows and blended merging was designed to process arbitrarily large images on a single GPU.
+
+Trained on 8,818 aggregated public crack images (80/10/10 split), U-Net achieved the highest segmentation accuracy on the public test set (IoU 53.04\%, F1 67.59\%), while YOLO26s-seg was fastest (18.07 ms) but least accurate (IoU 28.10\%). In zero-shot evaluation on the unseen \textbf{CUBIT-InSeg UAV dataset}, performance dropped across all models, with YOLO26s-seg narrowly leading (IoU 40.12\%, F1 56.16\%). The tile-based pipeline effectively preserved crack continuity across tile boundaries. These results establish U-Net as the most reliable model for fine crack segmentation and provide a foundation for deployment-time fine-tuning and edge deployment in real-world infrastructure inspection.
+
+\vspace{0.5cm}
+\noindent\textbf{Keywords:} crack segmentation, UAV imagery, deep learning, U-Net, SegFormer, YOLO, tile-based inference, class imbalance, infrastructure inspection
