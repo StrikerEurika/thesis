@@ -1,4 +1,8 @@
-# Multi-Project LaTeX Workspace
+# ITC Thesis LaTeX Workspace
+
+Check The Original Repository: [LaTeX Workspace](https://github.com/Ougi3ay/latex-workspace.git)
+
+Big Credit to Bong [Ougi3ay](https://github.com/Ougi3ay) for creating the original repository and sharing it with the community especially for ITC students.
 
 This repository is a reusable LaTeX workspace designed to manage multiple LaTeX projects in one clean structure.
 
@@ -20,13 +24,13 @@ This structure is useful for managing thesis documents, presentation slides, rep
 
 The purpose of this workspace is to provide a clean and scalable LaTeX project structure that supports:
 
-* Multiple LaTeX projects in one repository.
-* Separate source folders for each project.
-* Separate build folders for each output.
-* VS Code LaTeX Workshop integration.
-* Docker-compatible LaTeX compilation.
-* Reusable build scripts.
-* Better organization of figures, chapters, sections, references, and style files.
+- Multiple LaTeX projects in one repository.
+- Separate source folders for each project.
+- Separate build folders for each output.
+- VS Code LaTeX Workshop integration.
+- Docker-compatible LaTeX compilation.
+- Reusable build scripts.
+- Better organization of figures, chapters, sections, references, and style files.
 
 Instead of keeping everything in the project root, each LaTeX project is placed inside its own folder under `src/`.
 
@@ -327,12 +331,12 @@ xelatex → biber → xelatex → xelatex
 
 Use it when updating:
 
-* References.
-* Citations.
-* Table of contents.
-* List of figures.
-* List of tables.
-* Cross-references.
+- References.
+- Citations.
+- Table of contents.
+- List of figures.
+- List of tables.
+- Cross-references.
 
 Example:
 
@@ -350,68 +354,54 @@ Recommended `.vscode/settings.json`:
 
 ```json
 {
-  "latex-workshop.latex.autoBuild.run": "never",
+    "latex-workshop.latex.autoBuild.run": "never",
 
-  "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/build",
+    "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/build",
 
-  "latex-workshop.latex.autoBuild.onSave.files.ignore": [],
-  "latex-workshop.latex.rootFile.useSubFile": false,
+    "latex-workshop.latex.autoBuild.onSave.files.ignore": [],
+    "latex-workshop.latex.rootFile.useSubFile": false,
 
-  "latex-workshop.latex.recipe.default": "general: xelatex + biber",
+    "latex-workshop.latex.recipe.default": "general: xelatex + biber",
 
-  "latex-workshop.latex.recipes": [
-    {
-      "name": "general: xelatex + biber",
-      "tools": [
-        "general-full"
-      ]
-    },
-    {
-      "name": "general: xelatex fast",
-      "tools": [
-        "general-fast"
-      ]
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "general: xelatex + biber",
+            "tools": ["general-full"]
+        },
+        {
+            "name": "general: xelatex fast",
+            "tools": ["general-fast"]
+        }
+    ],
+
+    "latex-workshop.latex.tools": [
+        {
+            "name": "general-full",
+            "command": "/bin/bash",
+            "args": ["%WORKSPACE_FOLDER%/scripts/build-latex.sh", "%DOC%", "%WORKSPACE_FOLDER%", "full"],
+            "env": {}
+        },
+        {
+            "name": "general-fast",
+            "command": "/bin/bash",
+            "args": ["%WORKSPACE_FOLDER%/scripts/build-latex.sh", "%DOC%", "%WORKSPACE_FOLDER%", "fast"],
+            "env": {}
+        }
+    ],
+
+    "latex-workshop.view.pdf.viewer": "tab",
+    "latex-workshop.synctex.afterBuild.enabled": true,
+
+    "latex-workshop.formatting.latex": "latexindent",
+    "latex-workshop.latex.autoClean.run": "never",
+
+    "latex-workshop.intellisense.package.enabled": true,
+
+    "[latex]": {
+        "editor.formatOnSave": false,
+        "editor.wordWrap": "on",
+        "editor.rulers": [100]
     }
-  ],
-
-  "latex-workshop.latex.tools": [
-    {
-      "name": "general-full",
-      "command": "/bin/bash",
-      "args": [
-        "%WORKSPACE_FOLDER%/scripts/build-latex.sh",
-        "%DOC%",
-        "%WORKSPACE_FOLDER%",
-        "full"
-      ],
-      "env": {}
-    },
-    {
-      "name": "general-fast",
-      "command": "/bin/bash",
-      "args": [
-        "%WORKSPACE_FOLDER%/scripts/build-latex.sh",
-        "%DOC%",
-        "%WORKSPACE_FOLDER%",
-        "fast"
-      ],
-      "env": {}
-    }
-  ],
-
-  "latex-workshop.view.pdf.viewer": "tab",
-  "latex-workshop.synctex.afterBuild.enabled": true,
-
-  "latex-workshop.formatting.latex": "latexindent",
-  "latex-workshop.latex.autoClean.run": "never",
-
-  "latex-workshop.intellisense.package.enabled": true,
-
-  "[latex]": {
-    "editor.formatOnSave": false,
-    "editor.wordWrap": "on",
-    "editor.rulers": [100]
-  }
 }
 ```
 
@@ -502,10 +492,10 @@ BIBER="${BIBER:-biber}"
 
 This makes the build system portable across:
 
-* macOS
-* Linux
-* Docker
-* VS Code Dev Containers
+- macOS
+- Linux
+- Docker
+- VS Code Dev Containers
 
 ---
 
@@ -647,18 +637,18 @@ Check:  build/slide/main.pdf
 
 Use this workspace with the following habits:
 
-* Keep source files inside `src/`.
-* Keep generated files inside `build/`.
-* Use one folder per LaTeX project.
-* Use one `main.tex` per project.
-* Use `fast` build for quick edits.
-* Use `full` build before final submission.
-* Do not manually edit files in `build/`.
-* Do not compile chapter or section files directly.
-* Keep figures inside the related project folder.
-* Keep formatting commands inside a `.sty` file.
-* Keep project metadata in a separate file when needed.
-* Use clear labels for figures, tables, equations, and sections.
+- Keep source files inside `src/`.
+- Keep generated files inside `build/`.
+- Use one folder per LaTeX project.
+- Use one `main.tex` per project.
+- Use `fast` build for quick edits.
+- Use `full` build before final submission.
+- Do not manually edit files in `build/`.
+- Do not compile chapter or section files directly.
+- Keep figures inside the related project folder.
+- Keep formatting commands inside a `.sty` file.
+- Keep project metadata in a separate file when needed.
+- Use clear labels for figures, tables, equations, and sections.
 
 ---
 
