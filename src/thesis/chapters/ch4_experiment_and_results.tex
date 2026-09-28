@@ -1,4 +1,5 @@
 \chapter{EXPERIMENTS AND RESULTS}
+\label{chap:experiments_and_results}
 
 \section{Introduction}
 \hs This chapter presents the experimental results obtained from training and evaluating the crack segmentation models described in Chapter 3. The experiments were designed to address three primary research questions:
@@ -106,6 +107,13 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
 
 \hs YOLO26s-seg was considerably faster, with an inference time of 18.07 ms, but its segmentation performance was substantially lower, with an IoU of 28.10\% and an F1-score of 40.26\%. This demonstrates a clear trade-off between speed and segmentation accuracy.
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/plots/inference-grids-r2.png}
+    \caption{\textit{Inference results on of comparison between U-Net, SegFormer, and YOLO26s-seg in Public Test Split.}}
+    \label{fig:inference-on-public-test}
+\end{figure}
+
 \hs Overall, for this dataset, U-Net was the best-performing model for crack segmentation, while SegFormer offered a competitive balance between accuracy and speed. YOLO26s-seg was the fastest model but produced less accurate segmentation results.
 
 \section{Results and Analysis on Large Scale Images}
@@ -122,8 +130,6 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
     \caption{\textit{Zero-shot segmentation performance on CUBIT-InSeg.}}
     \label{fig:metrics_on_cubit_inseg}
 \end{figure}
-
-\newpage
 
 \hs Figure \ref{fig:metrics_on_cubit_inseg} visualizes zero-shot results, highlighting how the performance gap between models narrows substantially on CUBIT-InSeg compared to the public split. All three architectures converge to comparable IoU and F1-score values under domain shift, with YOLO26s-seg marginally leading.
 
@@ -142,20 +148,18 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
     \end{tabular}
 \end{table}
 
-\hs Table \ref{tab:cubit_inseg_performance} summarizes results on CUBIT-InSeg, a large-scale dataset with higher-resolution images and cracks traversing tile boundaries, providing a stress test for both segmentation accuracy and the tile-based pipeline. Although IoU values dropped compared to the public test split (Table \ref{tab:segmentation_performance}), this is expected given the increased resolution, crack variation, and complex backgrounds. Among the three models, YOLO26s-seg achieved the highest IoU (40.12\%) and F1-score (56.16\%), closely followed by U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%).
+\hs Table \ref{tab:cubit_inseg_performance} summarizes results on CUBIT-InSeg, a large-scale dataset with higher-resolution images and cracks crossing tile boundaries, providing a stress test for both segmentation accuracy and the tile-based pipeline. Although IoU values dropped compared to the public test split (Table \ref{tab:segmentation_performance}), this is expected given the increased resolution, crack variation, and complex backgrounds. Among the three models, YOLO26s-seg achieved the highest IoU (40.12\%) and F1-score (56.16\%), closely followed by U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%).
 
-\hs In precision and recall, U-Net led at 68.90\% precision (fewest false positives), while SegFormer achieved the acceptable recall (54.76\%) at the cost of lower precision (59.95\%). YOLO26s-seg sat in the middle (precision 62.22\%, recall 55.18\%), yielding the most balanced F1-score.
+\hs In precision and recall, U-Net led at 68.90\% precision (fewest false positives), while SegFormer achieved acceptable recall (54.76\%) at the cost of lower precision (59.95\%). YOLO26s-seg sat in the middle (precision 62.22\%, recall 55.18\%), yielding the most balanced F1-score.
 
-\newpage
+\hs Inference times ranged from 3,940.39 ms (YOLO26s-seg) to 5,188.30 ms (SegFormer), a substantial increase over the public split due to tile-wise processing. Notably, U-Net (4,903.53 ms) became faster than SegFormer, while YOLO26s-seg retained its speed advantage, though this no longer translated into meaningful segmentation improvement.
 
-\hs Inference times on CUBIT-InSeg ranged from 3,940.39 ms (YOLO26s-seg) to 5,188.30 ms (SegFormer), a substantial increase over the public split due to tile-wise processing. Notably, U-Net (4,903.53 ms) became faster than SegFormer, and YOLO26s-seg retained its speed advantage, though it no longer translates into meaningful segmentation improvement.
-
-\hs The zero-shot results on CUBIT-InSeg should be interpreted as a lower bound on the model's expected performance in deployment. In the intended workflow, a small number of images collected from the customer's site would be used to fine-tune the model before full-scale inference, which is expected to close part of the domain gap observed here. Quantifying the gains from such deployment-time fine-tuning is left as future work (Section \ref{sec:future_work}).
+\hs The zero-shot results on CUBIT-InSeg should be interpreted as a lower bound on expected deployment performance. In the intended workflow, a small set of customer-site images would be used to fine-tune the model before full-scale inference, which is expected to close part of the observed domain gap. Quantifying these gains is left as future work (Section \ref{sec:future_work}).
 
 \subsection{Generalization to Unseen Large-Scale Data}
 \label{subsec:generalization_to_unseen_large_scale_data}
 
-\hs Figure \ref{fig:cubit_inseg_comparison} presents a qualitative comparison of the three models on the CUBIT-InSeg dataset. The results demonstrate that while all models face challenges with crack continuity across tile boundaries, U-Net produces the most coherent segmentation masks, particularly in regions with fine crack structures are blended with the surrounding background. Also, SegFomer shows a balanced performance, as it does not lose the crack topology and continuity as much as YOLO26s-seg. YOLO26s-seg, while faster, exhibits more discontinuities in regions with varying crack intensity, leading to fragmented segmentation outputs.
+\hs Figure \ref{fig:cubit_inseg_comparison} presents a qualitative comparison of the three models on the CUBIT-InSeg dataset. While all models struggle with crack continuity across tile boundaries, U-Net produces the most coherent masks, particularly where fine cracks blend into the background. SegFormer performs in a balanced manner, preserving crack topology better than YOLO26s-seg, though it occasionally misclassifies background texture as cracks. The model, despite being faster, shows more discontinuities in regions of varying crack intensity, resulting in fragmented outputs.
 
 \begin{figure}[htbp]
     \centering
@@ -164,9 +168,7 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
     \label{fig:cubit_inseg_comparison}
 \end{figure}
 
-\hs The tile-based inference pipeline with blended overlap merging effectively preserves crack continuity across tile boundaries, as evidenced by the smooth transitions in the merged outputs. However, some discontinuities remain visible in regions where crack intensity varies significantly across tiles, particularly for YOLO26s-seg. Additionally, for SegFormer, the model occasionally misclassifies background textures as cracks, leading to false positives in the segmentation masks. However, the model demnonstrated a balance performance as it does not lose the crack topology and continuity as much as YOLO26s-seg.
-
-\hs Overall, U-Net remains the more reliable model for crack segmentation in large-scale images, while YOLO26s-seg offers faster inference at the cost of reduced accuracy
+\hs Overall, the tile-based pipeline with blended overlap merging effectively preserves crack continuity across tile boundaries, with only minor discontinuities remaining where crack intensity varies sharply. U-Net remains the most reliable model for large-scale crack segmentation, while YOLO26s-seg offers faster inference at the cost of reduced accuracy.
 
 \section{Summary}
 \label{sec:summary}
