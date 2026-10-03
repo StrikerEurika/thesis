@@ -2,7 +2,6 @@
 \label{chap:methodology}
 
 \section{Introduction}
-
 \hs This chapter describes the experimental design, data acquisition, model development, and evaluation procedures implemented during the internship project. The primary objective is to develop a robust and deployable deep learning framework for the automatic detection and pixel-level segmentation of cracks in large-scale, high-resolution aerial imagery captured by Unmanned Aerial Vehicles (UAVs) \cite{01-zhang-2024a, 07-chen-2024}. The methodology has been designed to address the key technical objectives established in Chapter 1:
 
 \begin{itemize}
@@ -14,12 +13,10 @@
 
 \section{Data Acquisition}
 \label{sec:data_acquisition}
-
 \hs To train a robust and generalizable deep learning model, a diverse collection of data is required. This section details the curation of public benchmarks, the collection protocol of our custom UAV dataset, and the preprocessing steps established to unify these disparate sources.
 
 \subsection{Public Datasets}
 \label{subsec:public-datasets}
-
 \hs To build a diverse and robust training corpus, we aggregated publicly available crack detection datasets curated in the GitHub repository \textbf{Cv-learning/Crack-Dataset}. This repository consolidates multiple benchmark datasets from the literature, providing a unified collection of crack images with corresponding pixel-level annotations.
 
 \newpage
@@ -50,7 +47,6 @@
 
 \subsection{CUBIT-InSeg Large-Scale UAV Dataset}
 \label{sebsec:cubit-for-zero-shot}
-
 \hs CUBIT-InSeg was used exclusively as an external, unseen test set and was not included in the training or validation splits. This decision reflects the deployment context of the project as the models' performance is intended to be delivered to a niche customer whose UAV-captured imagery and implementation environments will differ from any public benchmark. The first deployment to a new customer site is therefore inherently a zero-shot scenario, and CUBIT-InSeg provides a realistic proxy for that condition.
 
 \hs Fine-tuning on CUBIT-InSeg was deliberately avoided. In the intended workflow, fine-tuning is reserved as a deployment-time adaptation step, in which the model is retrained on a small set of images collected from the customer's own environment. Performing fine-tuning on CUBIT-InSeg during development would have consumed this adaptation step on a dataset that is not the customer's, and would have obscured the model's true zero-shot generalization performance. The CUBIT-InSeg results in Section \ref{sec:results_and_analysis_on_large_scale_images}; therefore represent a conservative estimate of the model's expected performance after customer-specific fine-tuning.
@@ -62,7 +58,6 @@
 \newpage
 
 \subsection{Planned Self-Collected UAV Dataset}
-
 \hs To complement the public benchmarks with real-world aerial imagery, a custom UAV-based crack dataset was proposed for collection by the Drone Operations Department at AI Farm Robotics. The intended acquisition protocol specified flights at an altitude of 10–15 m using a high-resolution RGB sensor, targeting building facades and rooftops in Phnom Penh, with annotations to be performed manually by trained technicians.
 
 \hs However, at the time of this internship (July–September 2026), the data collection and annotation pipeline had not been completed by the Drone Operations Department. Consequently, this dataset was not available for integration into the training, validation, or testing phases of the current study.
@@ -70,9 +65,7 @@
 \hs The absence of this dataset does not invalidate the experimental framework, as the aggregated public datasets (Section~\ref{subsec:public-datasets}) provide a sufficiently diverse and challenging benchmark covering multiple surface types, lighting conditions, and crack morphologies. Validation on genuine UAV-captured imagery remains an important direction for future work, contingent on the completion of the data collection effort by the drone team.
 
 \section{Data Preparation}
-
 \subsection{Annotation Unification and Standardization}
-
 \hs To make all training data compatible, the annotation formats from different sources were converted into a common binary pixel representation. Each ground-truth label was transformed into a single-channel mask, where the mathematical definition is:
 
 \begin{equation}
@@ -101,7 +94,6 @@
 
 \subsection{Patch Extraction and Sliding Window Strategy}
 \label{subsec:patch_extract_slicing_window}
-
 \hs To accommodate images of varying resolutions within a unified training and inference pipeline, all source images and their corresponding binary masks were decomposed into fixed-size tiles of \(512 \times 512\) pixels.
 
 \textbf{Training Phase}
@@ -165,17 +157,9 @@
 
 \subsection{Dataset Splitting}
 \label{subsec:dataset_splitting}
+\hs To ensure fair and unbiased evaluation, the entire set of 8,818 images was divided strictly at the image level into three disjoint subsets.
 
-\hs To ensure fair and unbiased evaluation, the entire set of 8,818 images was 
-divided strictly at the image level into three disjoint subsets.
-
-\hs Splitting was performed at the source-image level rather than at the 
-patch level. This is a critical design choice: if tiles from the same source 
-image were allowed to appear in both the training and test splits, the model 
-would effectively be evaluated on data it had already seen, since adjacent 
-tiles often share overlapping content, lighting conditions, and surface 
-texture. By enforcing image-level separation, no tile in the test set shares 
-its parent image with any tile in the training set.
+\hs Splitting was performed at the source-image level rather than at the patch level. This is a critical design choice: if tiles from the same source image were allowed to appear in both the training and test splits, the model would effectively be evaluated on data it had already seen, since adjacent tiles often share overlapping content, lighting conditions, and surface texture. By enforcing image-level separation, no tile in the test set shares its parent image with any tile in the training set.
 
 \begin{table}[htbp]
     \centering
@@ -197,28 +181,16 @@ its parent image with any tile in the training set.
     }
 \end{table}
 
-\hs By enforcing source-image level splitting, tiles from the same physical 
-road section or lighting condition were prevented from appearing in both the 
-training and evaluation splits. This ensures that reported performance 
-reflects generalization to unseen surfaces rather than memorization of 
-specific source images, mirroring the intended deployment scenario.
+\hs By enforcing source-image level splitting, tiles from the same physical road section or lighting condition were prevented from appearing in both the training and evaluation splits. This ensures that reported performance reflects generalization to unseen surfaces rather than memorization of specific source images, mirroring the intended deployment scenario.
 
-\hs The three-way split described in Table \ref{tab:dataset_split} applies 
-to the aggregated public dataset only. The CUBIT-InSeg dataset, described in 
-Section \ref{sebsec:cubit-for-zero-shot}, is deliberately excluded and used 
-as an external zero-shot test set.
+\hs The three-way split described in Table \ref{tab:dataset_split} applies to the aggregated public dataset only. The CUBIT-InSeg dataset, described in Section \ref{sebsec:cubit-for-zero-shot}, is deliberately excluded and used as an external zero-shot test set.
 
 \newpage
 
 \subsection{Class Imbalance Analysis}
 \label{subsec:class_imbalance_analysis}
 
-\hs \hs An analysis of pixel-level class distribution in the training set revealed 
-significant class imbalance. Figure \ref{fig:class_distribution} summarizes the 
-exact counts and their visual proportions, showing that crack pixels account for 
-76,705,349 of the 2,382,523,973 total pixels (3.33\%), while background pixels 
-account for the remaining 2,305,818,624 pixels (96.67\%). This corresponds to 
-an approximate 32:1 background-to-crack ratio.
+\hs An analysis of pixel-level class distribution in the training set revealed significant class imbalance. Figure \ref{fig:class_distribution} summarizes the exact counts and their visual proportions, showing that crack pixels account for 76,705,349 of the 2,382,523,973 total pixels (3.33\%), while background pixels account for the remaining 2,305,818,624 pixels (96.67\%). This corresponds to an approximate 32:1 background-to-crack ratio.
 
 \begin{figure}[htbp]
     \centering
@@ -228,26 +200,16 @@ an approximate 32:1 background-to-crack ratio.
     
 \end{figure}
 
-\hs Two practical consequences follow from this distribution. First, standard 
-cross-entropy loss functions, which weight each pixel equally, are dominated by 
-the background class and tend to produce models that predict crack pixels poorly, a phenomenon confirmed during preliminary experiments and addressed in 
-Section \ref{subsec:loss_functions} through the combined loss strategy. Second, 
-pixel accuracy is an inappropriate evaluation metric for this task: a naive 
-model that predicts background for every pixel would achieve 96.67\% accuracy 
-while detecting no cracks at all. For this reason, evaluation throughout this 
-study relies on IoU, F1-score, and recall, which measure positive-class 
-performance directly, as detailed in Section \ref{subsec:evaluation_metrics}.
+\hs Two practical consequences follow from this distribution. First, standard cross-entropy loss functions, which weight each pixel equally, are dominated by the background class and tend to produce models that predict crack pixels poorly, a phenomenon confirmed during preliminary experiments and addressed in Section \ref{subsec:loss_functions} through the combined loss strategy. Second, pixel accuracy is an inappropriate evaluation metric for this task: a naive model that predicts background for every pixel would achieve 96.67\% accuracy while detecting no cracks at all. For this reason, evaluation throughout this study relies on IoU, F1-score, and recall, which measure positive-class performance directly, as detailed in Section \ref{subsec:evaluation_metrics}.
 
 \section{Model Development and Selection}
 \label{sec:model_development_and_selection}
-
 \hs To empirically evaluate the trade-offs between accuracy, inference speed, and spatial context-awareness, three distinct families of state-of-the-art segmentation architectures were selected and evaluated. While the baseline architectures are well-established in the literature (Section \ref{sec:deep_learning_models}), specific modifications were applied to U-Net and SegFormer to address the unique challenges of crack segmentation, particularly extreme class imbalance and the need to preserve fine, thread-like structures. YOLO26s-seg was evaluated using its native configuration without architectural modification to serve as a deployment-oriented baseline.
 
 \newpage
 
 \subsection{Selection Rationale}
 \label{subsec:selection_rationale}
-
 The choice of architectures was guided by three primary considerations:
 
 \begin{itemize}
@@ -293,11 +255,11 @@ The choice of architectures was guided by three primary considerations:
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/architectures/unet-architecture.png}
-    \caption{\textit{Modified U-Net Architecture.}}
+    \caption{\textit{Illustration of the modified U-Net architecture.}}
     \label{fig:unet-modified}
 \end{figure}
 
-\textit{Illustration of the modified U-Net architecture.} The EfficientNet-B0 encoder replaces the original contracting path, while the scSE attention modules are inserted at each decoder stage to recalibrate features before concatenation with skip connections. With injected attention and a combined loss function, the modified U-Net is optimized for the detection of fine, low-contrast crack structures in high-resolution aerial imagery.
+\hs The EfficientNet-B0 encoder replaces the original contracting path, while the scSE attention modules are inserted at each decoder stage to recalibrate features before concatenation with skip connections. With injected attention and a combined loss function, the modified U-Net is optimized for the detection of fine, low-contrast crack structures in high-resolution aerial imagery.
 
 \textbf{Strengths:} Superior preservation of fine spatial details; well-established performance on crack segmentation; computationally efficient.
 
@@ -315,7 +277,7 @@ The choice of architectures was guided by three primary considerations:
     \label{fig:segformer-architecture}
 \end{figure}
 
-\hs The SegFormer architecture was adapted using the SMP framework with the changes:
+The SegFormer architecture was adapted using the SMP framework with the changes:
 
 \begin{enumerate}
     \item \textbf{Lightweight MiT-B0 Encoder:} The Mix Transformer (MiT-B0) variant was selected for its balance of efficiency and representational capacity. With only 3.7 million parameters, SegFormer-MiT-B0 is the lightest model evaluated in this study (See Table \ref{tab:model_comparison}). The hierarchical encoder captures both high-resolution local details and global contextual features without requiring positional encodings, avoiding performance drops when test resolution differs from training resolution.
@@ -332,9 +294,7 @@ The choice of architectures was guided by three primary considerations:
 \subsubsection{Instance Segmentation: YOLO}
 \label{subsubsec:instance_segmentation_yolo}
 
-\hs YOLO was selected to evaluate whether treating distinct cracks as separate instances reduces noise and improves global delineation. The YOLO family of single-stage, anchor-free detectors is well-suited for real-time edge deployment due to its efficient architecture.
-
-\textbf{Implementation Note:} Unlike U-Net and SegFormer, the YOLO26s-seg model was used with its native architecture and default training configuration as implemented in the Ultralytics framework. No architectural modifications, custom loss functions, or custom augmentation pipelines were applied. This decision was made deliberately to:
+\hs YOLO was selected to evaluate whether treating distinct cracks as separate instances reduces noise and improves global delineation. The YOLO family of single-stage, anchor-free detectors is well-suited for real-time edge deployment due to its efficient architecture. Unlike U-Net and SegFormer, the YOLO26s-seg model was used with its native architecture and default training configuration as implemented in the Ultralytics framework. No architectural modifications, custom loss functions, or custom augmentation pipelines were applied. This decision was made deliberately to:
 
 \begin{itemize}
     \item Evaluate the out-of-the-box performance of a modern, edge-optimized instance segmentation model on crack detection.
@@ -370,24 +330,24 @@ The total loss is formulated as:
 \end{equation}
 where the weights were set to \[w_{\text{BCE}} = 0.3, w_{\text{Dice}} = 0.3, \text{and } w_{\text{Focal}} = 0.4\] for both models, determined through preliminary experiments.
 
-\textbf{Binary Cross-Entropy (BCE) Loss.} BCE provides pixel-wise classification supervision, ensuring each pixel is individually evaluated against the ground truth:
+\hs \textbf{BCE} provides pixel-wise classification supervision, ensuring each pixel is individually evaluated against the ground truth:
 \begin{equation}
     L_{\text{BCE}} = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \log(p_i) + (1 - y_i) \log(1 - p_i) \right]
 \end{equation}
 
-\textbf{Dice Loss.} Dice loss optimizes the overlap between predicted and ground truth masks, which is more robust to class imbalance than BCE alone. It directly maximizes the F1-score at the pixel level:
+\hs \textbf{Dice} loss optimizes the overlap between predicted and ground truth masks, which is more robust to class imbalance than BCE alone. It directly maximizes the F1-score at the pixel level:
 \begin{equation}
     L_{\text{Dice}} = 1 - \frac{2 \, |P \cap G|}{|P| + |G|}
 \end{equation}
 where $P$ and $G$ denote the predicted and ground truth masks, respectively.
 
-\textbf{Focal Loss.} Focal loss \cite{29-lin-2017-focal-loss} down-weights the contribution of well-classified examples, forcing the model to focus on hard-to-classify crack pixels:
+\hs \textbf{Focal} loss \cite{29-lin-2017-focal-loss} down-weights the contribution of well-classified examples, forcing the model to focus on hard-to-classify crack pixels:
 \begin{equation}
     L_{\text{Focal}} = -\frac{1}{N} \sum_{i=1}^{N} (1 - p_i)^{\gamma} \, y_i \log(p_i)
 \end{equation}
-A focusing parameter of $\gamma = 2.0$ was used as recommended by \cite{29-lin-2017-focal-loss}. The Focal Loss is particularly effective for crack segmentation because it prevents the vast number of easy-to-classify background pixels from overwhelming the training signal.
+\hs A focusing parameter of $\gamma = 2.0$ was used as recommended by \cite{29-lin-2017-focal-loss}. The Focal Loss is particularly effective for crack segmentation because it prevents the vast number of easy-to-classify background pixels from overwhelming the training signal.
 
-\textbf{For YOLO:} YOLO employs its native loss function as implemented in the Ultralytics framework. The loss comprises multiple components:
+\hs \textbf{YOLO} employs its native loss function as implemented in the Ultralytics framework. The loss comprises multiple components:
 \begin{equation}
     L_{\text{YOLO}} = L_{\text{box}} + L_{\text{cls}} + L_{\text{dfl}} + L_{\text{mask}}
 \end{equation}
@@ -439,7 +399,6 @@ Table~\ref{tab:training-hyperparameters} summarizes the training hyperparameters
 
 \subsection{Data Augmentation}
 \label{subsec:data_augmentation}
-
 \hs Online data augmentation was applied during training to improve robustness to geometric and photometric variation. The validation and test splits were left unaltered.
 
 \textbf{U-Net and SegFormer}
@@ -494,12 +453,10 @@ Table~\ref{tab:training-hyperparameters} summarizes the training hyperparameters
 
 \section{Evaluation Framework}
 \label{sec:evaluation_framework}
-
 \hs This section describes the quantitative evaluation metrics and the protocol established to compare the performance of different models.
 
 \subsection{Evaluation Metrics}
 \label{subsec:evaluation_metrics}
-
 \hs Due to the extreme class imbalance in crack detection (where crack pixels typically occupy less than 1\% of the total image area), traditional pixel accuracy is highly misleading. A naive model predicting 100\% background would score $>99\%$ accuracy while failing completely. Therefore, the models are evaluated using metrics that focus on the positive class:
 
 \begin{enumerate}
@@ -526,10 +483,9 @@ Table~\ref{tab:training-hyperparameters} summarizes the training hyperparameters
 
 \subsection{Application Development and Integration}
 \label{subsec:application_development_and_integration}
-
 \hs To validate the practical deployability of the proposed pipeline, the best-performing segmentation model was integrated into a desktop application built with Python 3.11 and QFluentWidgets, a Fluent Design–inspired UI framework for PyQt/PySide. The application serves as the deployment front-end for AI Farm Robotics' crack inspection workflow, allowing operators to load UAV-captured imagery, run inference, and visualize results without interacting with the underlying model code.
 
-\textbf{System Architecture.} The application follows a modular architecture with three layers:
+\hs The application follows a modular architecture with three layers:
 
 \begin{enumerate}
     \item \textbf{User Interface Layer:} Built with QFluentWidgets, providing image import, parameter controls (tile size, overlap, threshold), and result visualization. The interface uses Fluent Design components including NavigationInterface, PushButton, and ProgressBar to maintain a consistent, modern appearance.
@@ -550,7 +506,7 @@ Table~\ref{tab:training-hyperparameters} summarizes the training hyperparameters
 
 \hs Images flow from the user interface through the ONNX-based inference layer, where sliding-window tiling and Gaussian blended merging are applied, to the post-processing layer that produces binary crack masks and quantitative statistics.
 
-\textbf{Workflow.} The user workflow consists of four steps:
+\hs The user workflow consists of four steps:
 
 \begin{enumerate}
     \item Import a UAV image (single file or folder batch).
@@ -562,4 +518,4 @@ Table~\ref{tab:training-hyperparameters} summarizes the training hyperparameters
     \item View results, the app shows the original image, binary mask, overlay, and a summary panel with crack overlay.
 \end{enumerate}
 
-\textbf{Deployment Target.} The application is designed for desktop deployment on inspection workstations and field laptops. It supports both GPU (CUDA via ONNX Runtime) and CPU fallback, ensuring operability on machines without dedicated graphics hardware. The ONNX export described in Section \ref{subsec:model_export} ensures that the app does not require a PyTorch installation, reducing deployment size and dependency conflicts.
+\hs The application is designed for desktop deployment on inspection workstations and field laptops. It supports both GPU (CUDA via ONNX Runtime) and CPU fallback, ensuring operability on machines without dedicated graphics hardware. The ONNX export described in Section \ref{subsec:model_export} ensures that the app does not require a PyTorch installation, reducing deployment size and dependency conflicts.

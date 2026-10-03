@@ -3,18 +3,23 @@
 
 \section{Interpretation of Experimental Results}
 \label{sec:interpretation_of_experimental_results}
+\hs The experimental results presented in Chapter 4 reveal distinct performance characteristics across the three architectural paradigms evaluated. On the public crack dataset, U-Net achieved the highest segmentation accuracy (IoU 53.04\%, F1 67.59\%), followed closely by SegFormer (IoU 51.21\%, F1 65.70\%), while YOLO26s-seg lagged substantially (IoU 28.10\%, F1 40.26\%). These results align with the architectural expectations outlined in Section 2.3.1: U-Net's skip connections preserve fine spatial details critical for thin crack detection, while SegFormer's global self-attention provides complementary contextual reasoning.
 
-\hs The experimental results presented in Chapter 4 reveal distinct performance characteristics across the three architectural paradigms evaluated. On the public crack dataset, U-Net achieved the highest segmentation accuracy (IoU 53.04\%, F1 67.59\%), followed closely by SegFormer (IoU 51.21\%, F1 65.70\%), while YOLO26s-seg lagged substantially (IoU 28.10\%, F1 40.26\%). These results align with the architectural expectations outlined in Section~\ref{subsec:semantic_segmentation_unet}: U-Net's skip connections preserve fine spatial details critical for thin crack detection, while SegFormer's global self-attention provides complementary contextual reasoning.
+\hs The relatively strong performance of U-Net can be attributed to two design choices. First, the EfficientNet-B0 encoder provides a favorable balance between representational capacity and computational efficiency, enabling effective feature extraction without overfitting on the 7,054 training images. Second, the scSE attention modules in the decoder allow the network to suppress background texture and focus on crack-like structures, a critical capability when cracks occupy only 3.33\% of the training pixels (Table 4.2).
 
-\hs The relatively strong performance of U-Net can be attributed to two design choices. First, the EfficientNet-B0 encoder provides a favorable balance between representational capacity and computational efficiency, enabling effective feature extraction without overfitting on the 7,054 training images. Second, the scSE attention modules in the decoder allow the network to suppress background texture and focus on crack-like structures, a critical capability when cracks occupy only 3.33\% of the training pixels (Table~\ref{tab:segmentation_performance}).
+\hs The performance gap of YOLO26s-seg on the public dataset is notable. While YOLO26 is optimized for real-time detection, its instance segmentation head may lack the spatial resolution required to delineate 1--3 pixel-wide cracks. Additionally, because YOLO was trained with its native loss function (which does not include the Dice or Focal components used for U-Net and SegFormer), it likely struggled more with the extreme foreground-background imbalance. The native YOLO loss weights each pixel or anchor relatively uniformly, so the overwhelming number of background pixels dominated the training signal on the public dataset, where cracks are extremely sparse and thin.
 
-\hs The performance gap of YOLO26s-seg on the public dataset is notable. While YOLO26 is optimized for real-time detection, its instance segmentation head may lack the spatial resolution required to delineate 1--3 pixel-wide cracks. Additionally, because YOLO was trained with its native loss function (which does not include the Dice or Focal components used for U-Net and SegFormer), it likely struggled more with the extreme foreground-background imbalance.
+\hs A different and counter-intuitive pattern emerged on the CUBIT-InSeg dataset. Under zero-shot conditions, YOLO26s-seg achieved the highest IoU (40.12\%) and F1 (56.16\%), narrowly outperforming U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%). More importantly, YOLO26s-seg actually *improved* its performance relative to the public test split (IoU 28.10\% $\rightarrow$ 40.12\%, F1 40.26\% $\rightarrow$ 56.16\%), whereas U-Net and SegFormer both dropped. This reversal suggests three possible explanations:
 
-\hs A different pattern emerged on the CUBIT-InSeg dataset. Under zero-shot conditions, YOLO26s-seg achieved the highest IoU (40.12\%) and F1 (56.16\%), narrowly outperforming U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%). This reversal suggests that YOLO26's native architectural optimizations, particularly NMS-free inference and Programmable Gradient Information, may confer advantages when processing the higher-resolution, more variable imagery in CUBIT-InSeg. U-Net retained the highest precision (68.90\%), indicating that it produces the fewest false positives, which is desirable in inspection contexts where false alarms incur operational costs.
+\begin{enumerate}
+	\item \textbf{Crack morphology in CUBIT-InSeg is more ``object-like.''} At the high resolution of UAV imagery, cracks appear wider and have more defined boundaries than the 1--3 pixel-wide cracks in the close-up public datasets. This makes them easier for an instance segmentation model to detect as discrete entities, even in an unseen domain.
+	\item \textbf{YOLO26's native architectural optimizations}---particularly NMS-free inference, Programmable Gradient Information (PGI), and the Generalized Efficient Layer Aggregation Network (GELAN)---may confer advantages when processing higher-resolution, more variable imagery.
+	\item \textbf{Loss function mismatch on public data.} The native YOLO loss may have under-performed on the extreme class imbalance of the public dataset, but the more balanced crack representation in CUBIT-InSeg allowed it to work more effectively.
+\end{enumerate}
+
+\hs U-Net retained the highest precision (68.90\%), indicating that it produces the fewest false positives, which is desirable in inspection contexts where false alarms incur operational costs.
 
 \hs Taken together, these results suggest that no single architecture dominates across all conditions. The model that performs best on controlled, close-up public data is not necessarily the model that transfers best to unseen aerial imagery, and the ranking between architectures can therefore shift depending on the deployment scenario. This observation motivates the trade-off analysis in the following sections, where accuracy, speed, and generalization are considered jointly rather than in isolation.
-
-\newpage
 
 \section{Analysis of Model Performance and Trade-offs}
 \label{sec:analysis_of_model_performance_and_trade-offs}
@@ -44,7 +49,7 @@
 
 \hs However, two limitations were observed. First, in regions where crack intensity varies sharply across tile boundaries, such as areas with strong shadows or surface staining, some discontinuities remain, particularly in YOLO26s-seg outputs. Second, the computational overhead of blending is non-trivial: for a 13.5 MP image, the tiling and merging steps add approximately 45 ms per tile, which becomes significant when processing hundreds of tiles.
 
-\hs The pipeline is architecturally scalable to gigapixel images, as tile processing is independent of total image dimensions. The only requirements are sufficient disk storage for intermediate outputs and sequential tile processing to fit within GPU memory. On the GTX 1650 (4 GB VRAM) used for evaluation, the pipeline successfully processed 13.5 MP images, and the same approach would extend to 100+ MP images without modification.
+\hs The pipeline is architecturally scalable to gigapixel images, as tile processing is independent of total image dimensions. The only requirements are sufficient disk storage for intermediate outputs and sequential tile processing to fit within GPU memory. On the GTX 1650 (4 GB VRAM) used for evaluation, the pipeline successfully processed 13.5 MP images, and the same approach would extend to 10+ MP images without modification.
 
 \section{Practical Implications for Infrastructure Inspection}
 \label{sec:practical_implications_for_infrastructure_inspection}
@@ -54,8 +59,6 @@
 \hs The application's ONNX-based inference layer eliminates the need for a PyTorch installation on deployment machines, reducing setup complexity. Support for both GPU (CUDA) and CPU fallback ensures operability on field laptops without dedicated graphics hardware—a common constraint in UAV inspection scenarios.
 
 \hs The application was validated on the local evaluation hardware described in Section \ref{sec:experimental_environment_and_hardware_specifications}. Using the U-Net model, the full pipeline, including image loading, tiled inference, blended merging, and mask visualization, successfully processed 13.5 MP images end-to-end in under 5 seconds. This confirms that the framework is not only accurate but also practical for real-world inspection workflows on consumer-grade hardware.
-
-\newpage
 
 \hs From a business perspective, the framework supports AI Farm Robotics' Robot-as-a-Service (RaaS) model. Rather than selling software licenses, the company can offer crack inspection as a subscription service, with the desktop app serving as the operator interface and the underlying models fine-tuned per customer site. The zero-shot results on CUBIT-InSeg (IoU ~40\%) represent a conservative lower bound; after deployment-time fine-tuning on a small set of customer images, performance is expected to improve substantially.
 

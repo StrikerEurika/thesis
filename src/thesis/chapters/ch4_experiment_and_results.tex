@@ -3,6 +3,7 @@
 
 \section{Introduction}
 \hs This chapter presents the experimental results obtained from training and evaluating the crack segmentation models described in Chapter 3. The experiments were designed to address three primary research questions:
+
 \begin{enumerate}
     \item How do different architectural paradigms (semantic segmentation, instance segmentation, and transformer-based models) compare in terms of crack detection accuracy and computational efficiency?
     \item Does the tile-based inference pipeline with blended overlap merging effectively preserve crack continuity when processing large-scale images?
@@ -19,7 +20,6 @@
 
 \section{Experimental Environment and Hardware Specifications}
 \label{sec:experimental_environment_and_hardware_specifications}
-
 \hs All experiments used a consistent hardware and software environment. The training environment was a Google Colab instance with a Tesla T4 GPU, while the evaluation environment was a local machine. Specifications are summarized in Table \ref{tab:hardware_specs}.
 
 \begin{table}[htbp]
@@ -64,7 +64,7 @@
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{figures/plots/training_validation_loss.png}
-    \caption{Training and validation loss curves for U-Net (left), SegFormer (middle), and YOLO26s-seg (right). Dashed vertical lines mark the best epoch and early stop point for each model.}
+    \caption{\textit{Training and validation loss curves for U-Net (left), SegFormer (middle), and YOLO26s-seg (right). Dashed vertical lines mark the best epoch and early stop point for each model.}}
     \label{fig:training_validation_loss}
 \end{figure}
 
@@ -73,7 +73,6 @@
 
 \subsection{Performance on Public Datasets}
 \label{subsec:performance_on_public_datasets}
-
 \hs Each model was trained using the protocol described in Section \ref{sec:model_development_and_selection} and evaluated on the held-out test split (882 images). Performance metrics are reported at the optimal threshold determined via validation set analysis.
 
 \begin{figure}[htbp]
@@ -121,7 +120,6 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
 
 \subsection{Model Adaptation and Performance}
 \label{subsec:model_adaptation_and_performance}
-
 \hs All models were evaluated on CUBIT-InSeg in a zero-shot setting: they were trained only on the public datasets described in Section \ref{subsec:public-datasets} and were not fine-tuned on CUBIT-InSeg. This setting was chosen deliberately, as it mirrors the first deployment of the model to a new aenvironment, where no site-specific training data is yet available (see Section \ref{sebsec:cubit-for-zero-shot}).
 
 \begin{figure}[htbp]
@@ -131,7 +129,7 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
     \label{fig:metrics_on_cubit_inseg}
 \end{figure}
 
-\hs Figure \ref{fig:metrics_on_cubit_inseg} visualizes zero-shot results, highlighting how the performance gap between models narrows substantially on CUBIT-InSeg compared to the public split. All three architectures converge to comparable IoU and F1-score values under domain shift, with YOLO26s-seg marginally leading.
+\hs Figure \ref{fig:metrics_on_cubit_inseg} visualizes zero-shot results, highlighting how the performance gap between models narrows substantially on CUBIT-InSeg compared to the public split. More strikingly, the ranking of the models is reversed: YOLO26s-seg, which was the worst performer on the public test split (IoU 28.10\%), becomes the best performer on CUBIT-InSeg (IoU 40.12\%). All three architectures converge to comparable IoU and F1-score values under domain shift, with YOLO26s-seg marginally leading.
 
 \begin{table}[htbp]
     \centering
@@ -139,7 +137,7 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
     \label{tab:cubit_inseg_performance}
     \begin{tabular}{lccccc}
         \toprule
-        \textbf{Model} & \textbf{IoU}    & \textbf{Precision} & \textbf{Recall} & \textbf{F1}     & \textbf{Time (ms)} \\
+        \textbf{Model} & \textbf{IoU}    & \textbf{P} & \textbf{R} & \textbf{F1}     & \textbf{Time (ms)} \\
         \midrule
         U-Net          & 0.3962          & \textbf{0.6890}    & 0.5085          & 0.5521          & 4903.53            \\
         SegFormer      & 0.3946          & 0.5995             & 0.5476          & 0.5488          & 5188.30            \\
@@ -148,18 +146,19 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
     \end{tabular}
 \end{table}
 
-\hs Table \ref{tab:cubit_inseg_performance} summarizes results on CUBIT-InSeg, a large-scale dataset with higher-resolution images and cracks crossing tile boundaries, providing a stress test for both segmentation accuracy and the tile-based pipeline. Although IoU values dropped compared to the public test split (Table \ref{tab:segmentation_performance}), this is expected given the increased resolution, crack variation, and complex backgrounds. Among the three models, YOLO26s-seg achieved the highest IoU (40.12\%) and F1-score (56.16\%), closely followed by U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%).
+\hs Table \ref{tab:cubit_inseg_performance} summarizes results on CUBIT-InSeg, a large-scale dataset with higher-resolution images and cracks crossing tile boundaries, providing a stress test for both segmentation accuracy and the tile-based pipeline. Although IoU values for U-Net and SegFormer dropped compared to the public test split (Table \ref{tab:segmentation_performance}), this is expected given the increased resolution, crack variation, and complex backgrounds. However, YOLO26s-seg improved its IoU from 28.10\% to 40.12\% and its F1-score from 40.26\% to 56.16\%. Among the three models, YOLO26s-seg achieved the highest IoU (40.12\%) and F1-score (56.16\%), closely followed by U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%).
 
 \hs In precision and recall, U-Net led at 68.90\% precision (fewest false positives), while SegFormer achieved acceptable recall (54.76\%) at the cost of lower precision (59.95\%). YOLO26s-seg sat in the middle (precision 62.22\%, recall 55.18\%), yielding the most balanced F1-score.
 
-\hs Inference times ranged from 3,940.39 ms (YOLO26s-seg) to 5,188.30 ms (SegFormer), a substantial increase over the public split due to tile-wise processing. Notably, U-Net (4,903.53 ms) became faster than SegFormer, while YOLO26s-seg retained its speed advantage, though this no longer translated into meaningful segmentation improvement.
+\hs Inference times ranged from 3,940.39 ms (YOLO26s-seg) to 5,188.30 ms (SegFormer), a substantial increase over the public split due to tile-wise processing. Notably, U-Net (4,903.53 ms) became faster than SegFormer, while YOLO26s-seg retained its speed advantage, though this no longer translated into a large segmentation improvement.
 
 \hs The zero-shot results on CUBIT-InSeg should be interpreted as a lower bound on expected deployment performance. In the intended workflow, a small set of customer-site images would be used to fine-tune the model before full-scale inference, which is expected to close part of the observed domain gap. Quantifying these gains is left as future work (Section \ref{sec:future_work}).
 
 \subsection{Generalization to Unseen Large-Scale Data}
 \label{subsec:generalization_to_unseen_large_scale_data}
-
 \hs Figure \ref{fig:cubit_inseg_comparison} presents a qualitative comparison of the three models on the CUBIT-InSeg dataset. While all models struggle with crack continuity across tile boundaries, U-Net produces the most coherent masks, particularly where fine cracks blend into the background. SegFormer performs in a balanced manner, preserving crack topology better than YOLO26s-seg, though it occasionally misclassifies background texture as cracks. The model, despite being faster, shows more discontinuities in regions of varying crack intensity, resulting in fragmented outputs.
+
+\hs U-Net's advantage is most visible on faint, low-contrast cracks, where its skip connections preserve the fine spatial detail needed to distinguish a crack from the surrounding surface. SegFormer compensates for this by detecting more of the faint crack segments, which is why its recall is higher, but the trade-off is a greater number of spurious detections in textured regions. YOLO26s-seg, by contrast, treats each crack as a discrete instance, which fragments continuous cracks into disjoint segments, an advantage for counting individual crack networks but a disadvantage for producing a single continuous mask. Its higher aggregate IoU on CUBIT-InSeg may also reflect the dataset's annotation style: if the ground truth is instance-based, YOLO's native output format may align more closely with it than the continuous masks produced by the semantic models.
 
 \begin{figure}[htbp]
     \centering
@@ -172,11 +171,12 @@ closely matching its performance. At first glance, YOLO26s-seg trails substantia
 
 \section{Summary}
 \label{sec:summary}
-
 \hs This chapter presented the experimental results of training and evaluating three crack segmentation architectures, U-Net (EfficientNet-B0), SegFormer (MiT-B0), and YOLO26s-seg, under a unified protocol. The key findings are summarized as follows:
 
-\textbf{Performance on Public Datasets (Table \ref{tab:segmentation_performance}):} U-Net achieved the highest segmentation accuracy with an IoU of 53.04\% and F1-score of 67.59\%, followed closely by SegFormer (IoU 51.21\%, F1 65.70\%). YOLO26s-seg was the fastest model (18.07 ms) but produced substantially lower segmentation quality (IoU 28.10\%, F1 40.26\%). This confirms a clear trade-off between inference speed and segmentation accuracy for crack detection.
+\begin{itemize}
+    \item \textbf{Performance on Public Datasets (Table \ref{tab:segmentation_performance}):} U-Net achieved the highest segmentation accuracy with an IoU of 53.04\% and F1-score of 67.59\%, followed closely by SegFormer (IoU 51.21\%, F1 65.70\%). YOLO26s-seg was the fastest model (18.07 ms) but produced substantially lower segmentation quality (IoU 28.10\%, F1 40.26\%). This confirms a clear trade-off between inference speed and segmentation accuracy for crack detection on close-up, thin-crack imagery.
 
-\textbf{Zero-Shot Generalization to Large-Scale UAV Imagery (Table \ref{tab:cubit_inseg_performance}):} On the unseen CUBIT-InSeg dataset, all models experienced a performance drop, as expected given the domain shift and increased image resolution. YOLO26s-seg achieved the highest IoU (40.12\%) and F1-score (56.16\%), narrowly outperforming U-Net (IoU 39.62\%, F1 55.21\%) and SegFormer (IoU 39.46\%, F1 54.88\%). U-Net maintained the highest precision (68.90\%), indicating fewer false positives, while SegFormer showed balanced recall. Inference times increased substantially due to tile-wise processing, ranging from 3,940 ms (YOLO26s-seg) to 5,188 ms (SegFormer).
+    \item \textbf{Zero-Shot Generalization to Large-Scale UAV Imagery (Table \ref{tab:cubit_inseg_performance}):} On the unseen CUBIT-InSeg dataset, a counter-intuitive reversal was observed. U-Net and SegFormer experienced a performance drop, as expected given the domain shift and increased image resolution (U-Net: IoU 53.04\% $\rightarrow$ 39.62\%, F1 67.59\% $\rightarrow$ 55.21\%; SegFormer: IoU 51.21\% $\rightarrow$ 39.46\%, F1 65.70\% $\rightarrow$ 54.88\%). In contrast, YOLO26s-seg improved its IoU from 28.10\% to 40.12\% and its F1-score from 40.26\% to 56.16\%, narrowly outperforming both other models on the unseen dataset. U-Net maintained the highest precision (68.90\%), indicating fewer false positives, while SegFormer showed balanced recall. Inference times increased substantially due to tile-wise processing, ranging from 3,940 ms (YOLO26s-seg) to 5,188 ms (SegFormer).
 
-\textbf{Tile-Based Inference Pipeline:} The sliding window approach with 25\% overlap and blended merging effectively preserved crack continuity across tile boundaries, as demonstrated by the qualitative results in Figure \ref{fig:cubit_inseg_comparison}. U-Net produced the most coherent segmentation masks, while YOLO26s-seg showed some discontinuities in regions with varying crack intensity. SegFormer occasionally misclassistatisticsfied background textures as cracks, leading to false positives.
+    \item \textbf{Tile-Based Inference Pipeline:} The sliding window approach with 25\% overlap and blended merging effectively preserved crack continuity across tile boundaries, as demonstrated by the qualitative results in Figure \ref{fig:cubit_inseg_comparison}. U-Net produced the most coherent segmentation masks, while YOLO26s-seg showed some discontinuities in regions with varying crack intensity. SegFormer occasionally misclassified background textures as cracks, leading to false positives.
+\end{itemize}
