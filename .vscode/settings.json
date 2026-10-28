@@ -13,8 +13,8 @@
   // =========================================================
   // RECIPES
   // =========================================================
-  "latex-workshop.latex.recipe.default": "general: xelatex fast",
-  // "latex-workshop.latex.recipe.default": "general: xelatex + biber",
+  // "latex-workshop.latex.recipe.default": "general: xelatex fast",
+  "latex-workshop.latex.recipe.default": "general: xelatex + biber",
   "latex-workshop.latex.recipes": [
     {
       "name": "general: xelatex + biber",
